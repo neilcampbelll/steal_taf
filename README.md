@@ -28,12 +28,30 @@ That will:
 
 ## Prerequisites
 
+You need `icesTAF` (which pulls in `TAF`) and `stockassessment` installed
+before cloning this repo. `icesTAF` is required to run `taf.boot()` and
+the rest of the framework; `stockassessment` is the assessment model.
+
 ```r
-install.packages("icesTAF")
+# icesTAF and other ICES packages from the canonical ICES r-universe
+install.packages("icesTAF",
+                 repos = c(CRAN = "https://cloud.r-project.org/",
+                           ICES = "https://ices-tools-prod.r-universe.dev"))
+
+# stockassessment from the SAM r-universe
 install.packages("stockassessment",
                  repos = c(CRAN = "https://cloud.r-project.org/",
                            SAM  = "https://fishfollower.r-universe.dev"))
 ```
+
+The ICES r-universe at <https://ices-tools-prod.r-universe.dev> is the
+authoritative source for ICES R packages and is kept up to date
+continuously. CRAN copies exist but can lag.
+
+`stockassessment` is also pinned in `boot/SOFTWARE.bib` and will be
+re-installed at boot time to guarantee version consistency. See
+[Pinning the SAM version for final assessments](#pinning-the-sam-version-for-final-assessments)
+below for how to update the pin.
 
 ## Usage
 
@@ -71,9 +89,10 @@ run_taf(boot = TRUE)                       # force re-fetch
 |-- report_tables.R           summary tables
 |-- run.R                     steal_taf() and run_taf() wrappers
 |-- .gitignore
-|-- LICENSE
 `-- README.md
 ```
+
+A `LICENSE` file is added when the GitHub repo is created.
 
 After `taf.boot()` runs, `boot/data/sam_data/` and `boot/data/sam_config/`
 are populated with the fetched files. After `run_taf()`, the `data/`,
@@ -87,7 +106,7 @@ Most of the framework is stock-agnostic. The places likely to need
 stock-specific tailoring are commented in each script. Briefly:
 
 - **`boot/sam_data.R`** -- if your stock uses extra input files beyond the
-  standard 11 SAM `.dat` files (e.g. external survey CV files), add them
+  standard SAM input files (e.g. external survey CV files), add them
   to the `files` vector.
 - **`data.R`** -- if you need a plus group, year truncation, survey
   averaging, or other preprocessing, add it before `setup.sam.data()`.
