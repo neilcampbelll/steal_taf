@@ -15,7 +15,7 @@ mkdir("data")
 ## ---- 1. Read underlying data from boot/data --------------------------------
 
 read.ices.taf <- function(...) {
-  read.ices(taf.data.path("sam_data", ...))
+  read.ices(taf.data.path(...))
 }
 
 # Catch
