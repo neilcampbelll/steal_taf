@@ -26,6 +26,10 @@ That will:
 5. Run `report.R` -> orchestrate `report_plots.R` and `report_tables.R`
    to produce diagnostic plots and formatted tables in `report/`.
 
+Once you have a working local assessment, use `copy_taf()` to prepare the
+files for submission to the ICES TAF repository (see
+[Copying to a TAF repository](#copying-to-a-taf-repository) below).
+
 ## Prerequisites
 
 You need `icesTAF` (which pulls in `TAF`) and `stockassessment` installed
@@ -79,7 +83,7 @@ run_taf(boot = TRUE)                       # force re-fetch
 |-- boot/
 |   |-- DATA.bib              data provenance entries
 |   |-- SOFTWARE.bib          software provenance entries
-|   |-- sam_data.R            fetches SAM input files
+|   |-- sam_data.R            fetches SAM input files (including extras)
 |   `-- sam_config.R          fetches model.cfg
 |-- data.R                    preprocess data, write TAF CSVs
 |-- model.R                   fit SAM, run retro
@@ -88,6 +92,7 @@ run_taf(boot = TRUE)                       # force re-fetch
 |-- report_plots.R            standard SAM plots
 |-- report_tables.R           summary tables
 |-- run.R                     steal_taf() and run_taf() wrappers
+|-- copy_taf.R                copy_taf() for TAF repository preparation
 |-- .gitignore
 `-- README.md
 ```
@@ -100,17 +105,81 @@ are populated with the fetched files. After `run_taf()`, the `data/`,
 None of these are committed to the repo - they're regenerated from the
 scripts.
 
+## Copying to a TAF repository
+
+Once your local assessment is running and producing results that match
+stockassessment.org, use `copy_taf()` to prepare the files for a TAF
+repository:
+
+```r
+source("copy_taf.R")
+copy_taf("user3", "WBCod_2027_final")
+```
+
+This will create a directory named `2026_WBCod_2027_final_assessment`
+alongside your current working directory, containing:
+
+- All TAF scripts (`data.R`, `model.R`, `output.R`, `report.R`, etc.)
+  with paths patched for the TAF boot structure
+- `boot/initial/data/` with all downloaded data files
+- `boot/DATA.bib` with a per-file entry for each data file, citing the
+  stockassessment.org run as the source
+- `boot/SOFTWARE.bib` generated from the installed `stockassessment` package
+- `run.R` to run the full pipeline via `taf.boot()` and the four TAF stages
+- `.gitignore` configured to exclude generated outputs
+
+You can then push the contents of that directory to your blank TAF
+repository on GitHub.
+
+### Before you push: verify your assessment
+
+> **Important:** `steal_taf` automates the mechanics of converting an
+> assessment to TAF format, but it cannot verify that the science is
+> correct. Before pushing to the TAF repository, you must satisfy yourself
+> that:
+
+- The results (SSB, Fbar, recruitment, catch) match those on
+  stockassessment.org to an acceptable degree of precision.
+- You understand any stock-specific preprocessing in the original
+  `datascript.R` on stockassessment.org and have replicated it correctly
+  in `data.R`.
+- The `DATA.bib` entries are complete -- the `title` and `period` fields
+  are left blank by `copy_taf()` and should be filled in before submission.
+
+### Stock-specific preprocessing
+
+The most common source of discrepancies between a `steal_taf` run and
+stockassessment.org is stock-specific preprocessing in `datascript.R` that
+goes beyond reading the standard input files. A typical example is an
+external survey CV file used to set observation weights:
+
+```r
+mod.cvs <- stockassessment:::read.surveys("coast_survey_cv.dat")
+attr(surveys[[2]], "weight") <- 1/log((mod.cvs[[1]])^2+1)
+```
+
+`steal_taf` will download any additional `.dat` or `.csv` files it finds in
+the stockassessment.org data directory, but it cannot automatically replicate
+custom preprocessing code. You should:
+
+1. Check `datascript.R` for your run at:
+   `https://stockassessment.org/datadisk/stockassessment/userdirs/{user}/{run}/src/datascript.R`
+2. Identify any preprocessing beyond the standard `read.ices()` calls.
+3. Add the equivalent code to `data.R` in the marked stock-specific section.
+4. Verify that your results match stockassessment.org before pushing.
+
 ## Adapting for a specific stock
 
 Most of the framework is stock-agnostic. The places likely to need
 stock-specific tailoring are commented in each script. Briefly:
 
-- **`boot/sam_data.R`** -- if your stock uses extra input files beyond the
-  standard SAM input files (e.g. external survey CV files), add them
-  to the `files` vector.
-- **`data.R`** -- if you need a plus group, year truncation, survey
-  averaging, or other preprocessing, add it before `setup.sam.data()`.
-  Also rename the `survey_1`, `survey_2` outputs to something meaningful.
+- **`boot/sam_data.R`** -- any extra input files beyond the standard set
+  will be downloaded automatically if they have a `.dat` or `.csv`
+  extension. If files with other extensions are needed, add them manually.
+- **`data.R`** -- add stock-specific preprocessing (plus group, year
+  truncation, survey averaging, observation weights, etc.) before
+  `setup.sam.data()`. Also rename the `survey_1`, `survey_2` outputs to
+  something meaningful.
 - **`model.R`** -- adjust the number of retro peels, add any `conf`
   overrides after `loadConf()`.
 - **`output.R`** -- add any stock-specific outputs (forecast, reference
