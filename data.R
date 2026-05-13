@@ -19,27 +19,27 @@ read.ices.taf <- function(...) {
 }
 
 # Catch
-catage <- read.ices.taf("cn.dat")
+catage <- read.ices.taf("sam_data/cn.dat")
 
 # Weights at age
-wcatch    <- read.ices.taf("cw.dat")
-wdiscards <- read.ices.taf("dw.dat")
-wlandings <- read.ices.taf("lw.dat")
-wstock    <- read.ices.taf("sw.dat")
+wcatch    <- read.ices.taf("sam_data/cw.dat")
+wdiscards <- read.ices.taf("sam_data/dw.dat")
+wlandings <- read.ices.taf("sam_data/lw.dat")
+wstock    <- read.ices.taf("sam_data/sw.dat")
 
 # Biology
-natmort  <- read.ices.taf("nm.dat")
-maturity <- read.ices.taf("mo.dat")
+natmort  <- read.ices.taf("sam_data/nm.dat")
+maturity <- read.ices.taf("sam_data/mo.dat")
 
 # Proportion of F / M before spawning
-propf <- read.ices.taf("pf.dat")
-propm <- read.ices.taf("pm.dat")
+propf <- read.ices.taf("sam_data/pf.dat")
+propm <- read.ices.taf("sam_data/pm.dat")
 
 # Landing fraction
-landfrac <- read.ices.taf("lf.dat")
+landfrac <- read.ices.taf("sam_data/lf.dat")
 
 # Surveys
-surveys <- read.ices.taf("survey.dat")
+surveys <- read.ices.taf("sam_data/survey.dat")
 
 
 ## ---- 2. Preprocess --------------------------------------------------------
